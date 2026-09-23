@@ -14,7 +14,7 @@ namespace EZBlocker
 {
     public partial class Main : Form
     {
-        private bool muted = false;
+        private bool? muted = null;
         private string lastMessage = "";
         private ToolTip artistTooltip = new ToolTip();
 
@@ -44,11 +44,12 @@ namespace EZBlocker
             try {
                 if (hook.IsRunning())
                 {
+                    muted = muted ?? AudioUtils.IsMuted(hook.VolumeControl.Control);
                     Debug.WriteLine("Is running");
                     if (hook.IsAdPlaying)
                     {
                         if (MainTimer.Interval != 1000) MainTimer.Interval = 1000;
-                        if (!muted) Mute(true);
+                        if (muted == false) Mute(true);
                         if (!hook.IsPlaying)
                         {
                             hook.SendNextTrack();
@@ -68,7 +69,7 @@ namespace EZBlocker
                     else if (hook.IsPlaying) // Normal music
                     {
                         Debug.WriteLine("Playing");
-                        if (muted)
+                        if (muted == true)
                         {
                             Thread.Sleep(200); // Give extra time for ad to change out
                             Mute(false);
@@ -122,7 +123,7 @@ namespace EZBlocker
         private void Mute(bool mute)
         {
             AudioUtils.SetSpotifyMute( mute);
-            muted = mute;
+            muted = AudioUtils.IsMuted(hook.VolumeControl.Control);
         }
 
         private string Truncate(string name)
